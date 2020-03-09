@@ -1,0 +1,11 @@
+framework module QSNetwork {
+  umbrella header "QSNetwork.h"
+
+  export *
+  module * { export * }
+}
+
+module QSNetwork.Swift {
+    header "QSNetwork-Swift.h"
+    requires objc
+}

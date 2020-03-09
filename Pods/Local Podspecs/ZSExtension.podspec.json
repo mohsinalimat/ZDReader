@@ -1,0 +1,58 @@
+{
+  "name": "ZSExtension",
+  "version": "1.0.15",
+  "summary": "ZSExtension.",
+  "description": "zhuishushenqi baseui module.",
+  "homepage": "https://github.com/zssq/ZSExtension",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "2252055382@qq.com": "Noah"
+  },
+  "source": {
+    "git": "https://github.com/zssq/ZSExtension.git",
+    "tag": "1.0.15"
+  },
+  "platforms": {
+    "ios": "10.0"
+  },
+  "swift_versions": "5.0",
+  "source_files": "ZSExtension/Classes/**/*",
+  "resource_bundles": {
+    "ZSExtension": [
+      "ZSExtension/Assets/*.png"
+    ]
+  },
+  "dependencies": {
+    "Alamofire": [
+
+    ],
+    "SQLite.swift": [
+
+    ],
+    "PKHUD": [
+
+    ],
+    "MBProgressHUD": [
+
+    ],
+    "ZSAppConfig": [
+
+    ],
+    "Zip": [
+
+    ],
+    "HandyJSON": [
+
+    ],
+    "Kingfisher": [
+
+    ],
+    "YYCategories": [
+
+    ]
+  },
+  "swift_version": "5.0"
+}

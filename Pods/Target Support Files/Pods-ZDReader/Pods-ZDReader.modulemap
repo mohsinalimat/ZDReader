@@ -1,0 +1,6 @@
+module Pods_ZDReader {
+  umbrella header "Pods-ZDReader-umbrella.h"
+
+  export *
+  module * { export * }
+}

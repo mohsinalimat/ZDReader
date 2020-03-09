@@ -1,0 +1,6 @@
+module ZSAPI {
+  umbrella header "ZSAPI-umbrella.h"
+
+  export *
+  module * { export * }
+}

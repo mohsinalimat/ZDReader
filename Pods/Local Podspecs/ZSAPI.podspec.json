@@ -1,0 +1,29 @@
+{
+  "name": "ZSAPI",
+  "version": "1.0.15",
+  "summary": "ZSAPI.",
+  "description": "zhuishushenqi baseui module.",
+  "homepage": "https://github.com/zssq/ZSAPI",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "2252055382@qq.com": "Noah"
+  },
+  "source": {
+    "git": "https://github.com/zssq/ZSAPI.git",
+    "tag": "1.0.15"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "swift_versions": "5.0",
+  "source_files": "ZSAPI/Classes/**/*",
+  "resource_bundles": {
+    "ZSAPI": [
+      "ZSAPI/Assets/*.png"
+    ]
+  },
+  "swift_version": "5.0"
+}

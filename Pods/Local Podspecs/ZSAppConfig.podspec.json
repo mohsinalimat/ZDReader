@@ -1,0 +1,29 @@
+{
+  "name": "ZSAppConfig",
+  "version": "1.0.15",
+  "summary": "ZSAppConfig.",
+  "description": "zhuishushenqi baseui module.",
+  "homepage": "https://github.com/zssq/ZSAppConfig",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "2252055382@qq.com": "Noah"
+  },
+  "source": {
+    "git": "https://github.com/zssq/ZSAppConfig.git",
+    "tag": "1.0.15"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "swift_versions": "5.0",
+  "source_files": "ZSAppConfig/Classes/**/*",
+  "resource_bundles": {
+    "ZSAppConfig": [
+      "ZSAppConfig/Assets/*.png"
+    ]
+  },
+  "swift_version": "5.0"
+}
