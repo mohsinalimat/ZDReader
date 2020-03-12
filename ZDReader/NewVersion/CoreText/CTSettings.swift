@@ -2,8 +2,8 @@
 //  CTSettings.swift
 //  CoreTextDemo
 //
-//  Created by Noah on 2019/7/11.
-//  Copyright © 2019 ZD. All rights reserved.
+//  Created by caony on 2019/7/11.
+//  Copyright © 2019 cj. All rights reserved.
 //
 
 import UIKit
@@ -22,6 +22,7 @@ struct ZSLinkData {
     // post或者booklist
     var linkTo:String = ""
     var key:String = ""
+    var range:NSRange = NSMakeRange(0, 0)
     var type:ZSParseType = .link
 }
 
@@ -47,8 +48,6 @@ class CTSettings {
     var columnsPerPage: CGFloat!
     var pageRect: CGRect!
     var columnRect: CGRect!
-    
-    static let shared = CTSettings()
     
     // MARK: - Initializers
     init() {

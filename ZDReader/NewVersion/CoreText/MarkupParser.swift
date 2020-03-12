@@ -2,8 +2,8 @@
 //  MarkupParser.swift
 //  CoreTextDemo
 //
-//  Created by Noah on 2019/7/11.
-//  Copyright © 2019 ZD. All rights reserved.
+//  Created by caony on 2019/7/11.
+//  Copyright © 2019 cj. All rights reserved.
 //
 
 import UIKit
@@ -24,55 +24,38 @@ struct ZSImageParse:Codable {
     var size:CGSize = CGSize.zero
 }
 
+struct ZSDisplayConfig {
+    var margin:CGFloat = 20
+    var width:CGFloat = ZSReader.share.contentFrame.width
+    var fontSize:CGFloat = ZSReader.share.theme.fontSize.size
+    var textColor = AppStyle.shared.reader.textColor
+    var lineSpace:CGFloat = ZSReader.share.theme.lineSpace
+    var paragraphSpace = ZSReader.share.theme.paragraphSpace
+    var textFont = UIFont.systemFont(ofSize: ZSReader.share.theme.fontSize.size)
+}
+
 class MarkupParser: NSObject {
     // MARK: - Properties
-    var color: UIColor = .gray
-    var fontName: String = "Arial"
     var attrString: NSMutableAttributedString!
-    var images: [[String: Any]] = []
-    
-    var coreData:ZSTextData?
+    var config:ZSDisplayConfig!
+    var data:ZSTextData?
     
     // MARK: - Initializers
-    override init() {
+    private override init() {
         super.init()
     }
     
-    let kBookNamePattern = "(《.*?》)"
-    let kTextLinkPattern = "(\\[\\[.*?\\]\\])"
-    let kBookJumpPattern = "(\\{\\{.*?\\}\\})"
-//    //《❤温馨小贴士》
-//    static NSString *const kImageViewPattern = @"(《.*?》)";
-//
-//    //static NSString *const kImageViewPattern = @"(?<name>《.*?》)";
-//
-//    //[[post:5b50550d6f788aef59667822 【传送门】告别燥热？这样玩转书单还有惊喜大礼！]]
-//    static NSString *const kTextLinkPattern = @"(\\[\\[.*?\\]\\])";
-//
-//    //{{type:image,url:http%3A%2F%2Fstatics.zhuishushenqi.com%2Fpost%2F151678369762541,size:420-422}}
-//    static NSString *const kBookPattern = @"(\\{\\{.*?\\}\\})";
-    
-    func attribute() ->[NSAttributedString.Key:Any] {
-        let defaultFont: UIFont = .systemFont(ofSize: UIScreen.main.bounds.size.height / 40)
-        let font = UIFont(name: fontName, size: UIScreen.main.bounds.size.height / 40) ?? defaultFont
-        let style = NSMutableParagraphStyle()
-        style.alignment = NSTextAlignment.left
-        let attrs = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font,NSAttributedString.Key.paragraphStyle:style] as [NSAttributedString.Key : Any]
-        return attrs
+    convenience init(config:ZSDisplayConfig) {
+        self.init()
+        self.config = config
     }
     
-    func linkAttribute() ->[NSAttributedString.Key:Any] {
-        let defaultFont: UIFont = .systemFont(ofSize: UIScreen.main.bounds.size.height / 40)
-        let font = UIFont(name: fontName, size: UIScreen.main.bounds.size.height / 40) ?? defaultFont
-        let linkColor = UIColor.orange
-        let style = NSMutableParagraphStyle()
-        style.alignment = NSTextAlignment.left
-        let attrs = [NSAttributedString.Key.foregroundColor: linkColor, NSAttributedString.Key.font: font,NSAttributedString.Key.paragraphStyle:style] as [NSAttributedString.Key : Any]
-        return attrs
-    }
+    private let kBookNamePattern = "(《.*?》)" // 《❤温馨小贴士》
+    private let kTextLinkPattern = "(\\[\\[.*?\\]\\])" // [[post:5b50550d6f788aef59667822 【传送门】告别燥热？这样玩转书单还有惊喜大礼！]]
+    private let kBookJumpPattern = "(\\{\\{.*?\\}\\})" // {{type:image,url:http%3A%2F%2Fstatics.zhuishushenqi.com%2Fpost%2F151678369762541,size:420-422}}
     
     // MARK: - zssq parse
-    func parseContent(_ content: String, settings:CTSettings) {
+    func parse(_ content: String) {
         attrString = NSMutableAttributedString(string: "")
         let pattern = "\(kBookNamePattern)|\(kBookJumpPattern)|\(kTextLinkPattern)"
         do {
@@ -91,7 +74,7 @@ class MarkupParser: NSObject {
                 let chunkStr = String(chunkSubStr)
                 if let preTextRange = content.range(from: NSMakeRange(lastRange.location + lastRange.length, chunk.range.location - lastRange.location - lastRange.length)) {
                     let preText = String(content[preTextRange])
-                    let text = NSMutableAttributedString(string: preText, attributes: attribute())
+                    let text = NSMutableAttributedString(string: preText, attributes: textAttribute())
                     attrString.append(text)
                 }
                 // image
@@ -104,15 +87,16 @@ class MarkupParser: NSObject {
                         images.append(imageData)
                         var width: CGFloat = imageData.parse?.size.width ?? 0
                         var height: CGFloat = imageData.parse?.size.height ?? 0
-                        if width > settings.pageRect.width {
-                            height = height/width * settings.pageRect.width
-                            width = settings.pageRect.width
+                        if width > config.width {
+                            height = height/width * config.width
+                            width = config.width
                         }
-                        let attr = configImage(width: width, height: height)
+                        let attr = imageAttribute(width: width, height: height)
                         attrString.append(attr)
                     }
                 } else if chunkStr.contains("[[") { // link(post/booklist)
-                    if let linkData = linkDara(str: chunkStr) {
+                    if var linkData = linkData(str: chunkStr) {
+                        linkData.range = NSMakeRange(attrString.length, linkData.title.count)
                         links.append(linkData)
                         let text = NSMutableAttributedString(string: linkData.title, attributes: linkAttribute())
                         attrString.append(text)
@@ -128,32 +112,35 @@ class MarkupParser: NSObject {
             if lastRange.location + lastRange.length < content.count {
                 if let remainContentRange = content.range(from: NSMakeRange(lastRange.location + lastRange.length, content.count - lastRange.location - lastRange.length)) {
                     let remainContent = String(content[remainContentRange])
-                    let text = NSMutableAttributedString(string: remainContent, attributes: attribute())
+                    let text = NSMutableAttributedString(string: remainContent, attributes: textAttribute())
                     attrString.append(text)
                 }
             }
             let framesetter = CTFramesetterCreateWithAttributedString(attrString as CFAttributedString)
-            let textSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, 0), nil, CGSize(width: settings.pageRect.width, height: CGFloat.greatestFiniteMagnitude), nil)
-
+            let textSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, 0), nil, CGSize(width: config.width, height: CGFloat.greatestFiniteMagnitude), nil)
+            
             var coreData = ZSTextData()
             coreData.books = books
             coreData.images = images
             coreData.links = links
             coreData.height = textSize.height
-            self.coreData = coreData
-        } catch _ {
-            
-        }
+            self.data = coreData
+        } catch _ {}
     }
     
-    func parse(book:String) ->ZSBookData {
+    
+    /// 解析富文本中书籍数据,一般用《》括起
+    /// - Parameter book:返回书籍的model
+    private func parse(book:String) ->ZSBookData {
         var bookModel = ZSBookData()
         bookModel.content = book
         bookModel.type = .book
         return bookModel
     }
     
-    func parse(imageStr: String) ->ZSImageParse {
+    /// 解析富文本中的图片
+    /// - Parameter imageStr: 图片原字符串
+    private func parse(imageStr: String) ->ZSImageParse {
         var chunkStr = imageStr.replacingOccurrences(of: "{{", with: "")
         chunkStr = chunkStr.replacingOccurrences(of: "}}", with: "")
         var imageDic:[String:Any] = [:]
@@ -181,7 +168,10 @@ class MarkupParser: NSObject {
         return imageParse
     }
     
-    func linkDara(str:String) ->ZSLinkData? {
+    
+    /// 获取链接的model数据
+    /// - Parameter str: 连接的原字符
+    private func linkData(str:String) ->ZSLinkData? {
         var linkStr = str.replacingOccurrences(of: "[[", with: "")
         linkStr = linkStr.replacingOccurrences(of: "]]", with: "")
         let links = linkStr.components(separatedBy: ":")
@@ -217,94 +207,27 @@ class MarkupParser: NSObject {
         return nil
     }
     
-    // MARK: - Internal
-    func parseMarkup(_ markup: String) {
-        //1
-        attrString = NSMutableAttributedString(string: "")
-        //2
-        do {
-            let regex = try NSRegularExpression(pattern: "(.*?)(<[^>]+>|\\Z)", options: [.caseInsensitive,.dotMatchesLineSeparators])
-            //3
-            let chunks = regex.matches(in: markup, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSRange(location: 0, length: markup.count))
-            let defaultFont: UIFont = .systemFont(ofSize: UIScreen.main.bounds.size.height / 40)
-            //1
-            for chunk in chunks {
-                //2
-                guard let markupRange = markup.range(from: chunk.range) else { continue }
-                //3
-                let parts = markup[markupRange].components(separatedBy: "<")
-                //4
-                let font = UIFont(name: fontName, size: UIScreen.main.bounds.size.height / 40) ?? defaultFont
-                //5
-                let attrs = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: font] as [NSAttributedString.Key : Any]
-                let text = NSMutableAttributedString(string: parts[0], attributes: attrs)
-                attrString.append(text)
-                
-                // 1
-                if parts.count <= 1 {
-                    continue
-                }
-                let tag = parts[1]
-                //2
-                if tag.hasPrefix("font") {
-                    let colorRegex = try NSRegularExpression(pattern: "(?<=color=\")\\w+", options: NSRegularExpression.Options(rawValue: 0))
-                    colorRegex.enumerateMatches(in: tag, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, tag.count)) { (match, _, _) in
-                        //3
-                        if let match = match,
-                            let range = tag.range(from: match.range) {
-                            let colorSel = NSSelectorFromString(tag[range]+"Color")
-                            color = UIColor.perform(colorSel).takeRetainedValue() as? UIColor ?? .black
-                        }
-                    }
-                    //5
-                    let faceRegex = try NSRegularExpression(pattern: "(?<=face=\")[^\"]+", options: NSRegularExpression.Options(rawValue: 0))
-                    faceRegex.enumerateMatches(in: tag, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, tag.count)) { (match, _, _) in
-                        
-                        if let match = match,
-                            let range = tag.range(from: match.range) {
-                            fontName = String(tag[range])
-                        }
-                    }
-                }
-                    //1
-                else if tag.hasPrefix("img") {
-                    
-                    var filename:String = ""
-                    let imageRegex = try NSRegularExpression(pattern: "(?<=src=\")[^\"]+", options: NSRegularExpression.Options(rawValue: 0))
-                    imageRegex.enumerateMatches(in: tag, options: NSRegularExpression.MatchingOptions(rawValue: 0), range: NSMakeRange(0, tag.count)) { (match, _, _) in
-                            if let match = match, let range = tag.range(from: match.range) {
-                                filename = String(tag[range])
-                            }
-                    }
-                    //2
-                    let settings = CTSettings()
-                    var width: CGFloat = settings.columnRect.width
-                    var height: CGFloat = 0
-                    
-                    if let image = UIImage(named: filename) {
-                        height = width * (image.size.height / image.size.width)
-                        // 3
-                        if height > settings.columnRect.height - font.lineHeight {
-                            height = settings.columnRect.height - font.lineHeight
-                            width = height * (image.size.width / image.size.height)
-                        }
-                    }
-                    //1
-                    images += [["width": NSNumber(value: Float(width)),
-                                "height": NSNumber(value: Float(height)),
-                                "filename": filename,
-                                "location": NSNumber(value: attrString.length)]]
-                    let attr = configImage(width: width, height: height)
-                    attrString.append(attr)
-                }
-                
-            }
-        } catch _ {
-        }
-        
+    /// 获取文字的attr配置
+    private func textAttribute() ->[NSAttributedString.Key:Any] {
+        let attrs = ZSReader.share.attributes()
+        return attrs
     }
     
-    func configImage(width:CGFloat, height:CGFloat) ->NSAttributedString {
+    
+    /// 获取链接的attr配置
+    private func linkAttribute() ->[NSAttributedString.Key:Any] {
+        
+        let linkColor = UIColor.orange
+        var attrs = ZSReader.share.attributes()
+        attrs[NSAttributedString.Key.foregroundColor] = linkColor
+        return attrs
+    }
+    
+    /// 获取图片的占位符AttributedString
+    /// - Parameters:
+    ///   - width: 图片宽度
+    ///   - height: 图片高度
+    private func imageAttribute(width:CGFloat, height:CGFloat) ->NSAttributedString {
         struct RunStruct {
             let ascent: CGFloat
             let descent: CGFloat
@@ -332,8 +255,68 @@ class MarkupParser: NSObject {
         var objectReplacementChar:unichar = 0xFFFC
         let content = NSString(characters: &objectReplacementChar, length: 1)
         let attrStr = NSMutableAttributedString(string: String(content), attributes: attrDictionaryDelegate)
-        attrStr.addAttributes(attribute(), range: NSMakeRange(0, attrStr.length))
+        attrStr.addAttributes(textAttribute(), range: NSMakeRange(0, attrStr.length))
         return attrStr
+    }
+    
+    /// 检测点击位置是都在链接上
+    /// - Parameters:
+    ///   - view: 点击view
+    ///   - point: 点击坐标
+    ///   - data: 所有的data
+    static func link(in view:UIView, point:CGPoint, data:ZSTextData) ->ZSLinkData? {
+        let idx = touchOffset(in: view, point: point, data: data)
+        if idx == -1 {
+            return nil
+        }
+        if let link = link(at: idx, links: data.links) {
+            return link
+        }
+        return nil
+    }
+    
+    
+    /// 将点击的位置转换成字符串的偏移量
+    /// - Parameters:
+    ///   - view: 点击view
+    ///   - point: 点击坐标
+    ///   - data: 所有的data
+    static func touchOffset(in view:UIView, point:CGPoint, data:ZSTextData) ->Int {
+        var idx = -1
+        if let ctFrame = data.ctFrame {
+            let lines = CTFrameGetLines(ctFrame) as NSArray
+            let count = lines.count
+            if count == 0 {
+                return -1
+            }
+            var origins = [CGPoint](repeating: CGPoint.zero, count: lines.count)
+            CTFrameGetLineOrigins(ctFrame, CFRange(location: 0, length: 0), &origins)
+            for index in 0..<lines.count {
+                let line = lines[index] as! CTLine
+                let origin = origins[index]
+                var ascent: CGFloat = 0
+                var descent: CGFloat = 0
+                let width:CGFloat = CGFloat(CTLineGetTypographicBounds(line, &ascent, &descent, nil))
+                let height = ascent + descent
+                let lineRect = CGRect(x: origin.x, y: view.bounds.height - origin.y - (ascent + descent), width: width, height: height)
+                if lineRect.contains(point) {
+                    let relativePoint = CGPoint(x: point.x - lineRect.origin.x, y: point.y - lineRect.origin.y)
+                    idx = CTLineGetStringIndexForPosition(line, relativePoint)
+                }
+            }
+        }
+        return idx
+    }
+    
+    static func link(at index:Int, links:[ZSLinkData]) ->ZSLinkData? {
+        var linkData:ZSLinkData? = nil
+        for link in links {
+            if link.range.contains(index) {
+                linkData = link
+                break
+            }
+        }
+        return linkData
     }
 }
 

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class PageView: CTDisplayView {
+class PageView: ZSDisplayView {
 
     // size color
     
@@ -21,23 +21,26 @@ class PageView: CTDisplayView {
     }
     
     func refresh() {
-        let fontSize = ZSReader.share.theme.fontSize.size
-        let lineSpace = ZSReader.share.theme.lineSpace
-        let config = CTFrameParserConfig()
-        config.fontSize = CGFloat(fontSize)
-        config.textColor = AppStyle.shared.reader.textColor
-        config.width = ZSReader.share.contentFrame.width
-        config.lineSpace = lineSpace
-        config.paragraphSpace = ZSReader.share.theme.paragraphSpace
-        config.textFont = UIFont.systemFont(ofSize: fontSize)
-        //            attribute = CTFrameParser.attributes(with: config)
-        let data:CoreTextData = CTFrameParser.parseContent(attributedText, config: config)
-        self.data = data
+//        let fontSize = ZSReader.share.theme.fontSize.size
+//        let lineSpace = ZSReader.share.theme.lineSpace
+//        let config = CTFrameParserConfig()
+//        config.fontSize = CGFloat(fontSize)
+//        config.textColor = AppStyle.shared.reader.textColor
+//        config.width = ZSReader.share.contentFrame.width
+//        config.lineSpace = lineSpace
+//        config.paragraphSpace = ZSReader.share.theme.paragraphSpace
+//        config.textFont = UIFont.systemFont(ofSize: fontSize)
+//        //            attribute = CTFrameParser.attributes(with: config)
+//        let data:CoreTextData = CTFrameParser.parseContent(attributedText, config: config)
+        let config = ZSDisplayConfig()
+        let parser = MarkupParser(config: config)
+        parser.parse(attributedText)
+        build(parser: parser)
         setNeedsDisplay()
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        refresh()
+        
     }
 }

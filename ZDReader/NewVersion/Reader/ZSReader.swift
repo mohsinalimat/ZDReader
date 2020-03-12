@@ -266,31 +266,43 @@ enum ZSReaderStyle:Int {
     var backgroundImage:UIImage {
         switch self {
         case .yellow:
-            return #imageLiteral(resourceName: "yellow_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "yellow_mode_bg")
         case .white:
-            return #imageLiteral(resourceName: "white_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "white_mode_bg")
         case .green:
-            return #imageLiteral(resourceName: "green_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "green_mode_bg")
 //        case .blackgreen:
 //            return #imageLiteral(resourceName: "new_nav_night_normal")
         case .pink:
-            return #imageLiteral(resourceName: "violet_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "violet_mode_bg")
         case .sheepskin:
-            return #imageLiteral(resourceName: "beijing")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "beijing")
         case .violet:
-            return #imageLiteral(resourceName: "violet_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "violet_mode_bg")
         case .water:
-            return #imageLiteral(resourceName: "sheepskin_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "sheepskin_mode_bg")
         case .weekPink:
-            return #imageLiteral(resourceName: "violet_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "violet_mode_bg")
         case .weekGreen:
-            return #imageLiteral(resourceName: "violet_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "violet_mode_bg")
         case .coffee:
-            return #imageLiteral(resourceName: "pf_header_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "pf_header_bg")
         case .night:
-            return #imageLiteral(resourceName: "blackGreen_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "blackGreen_mode_bg")
         default:
-            return #imageLiteral(resourceName: "violet_mode_bg")
+            return UIImage(color: UIColor.white)!
+//            return #imageLiteral(resourceName: "violet_mode_bg")
         }
     }
     

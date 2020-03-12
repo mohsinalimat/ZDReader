@@ -180,7 +180,6 @@
 		B237965C24169192009D7947 /* ZSSettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B237965B24169191009D7947 /* ZSSettingViewController.swift */; };
 		B237965E241691C3009D7947 /* ZSSettingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B237965D241691C3009D7947 /* ZSSettingViewModel.swift */; };
 		B23796602416923B009D7947 /* ZSMyFooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B237965F2416923B009D7947 /* ZSMyFooterView.swift */; };
-		B237966224169C79009D7947 /* HtmlParserModelData_edit.dat in Resources */ = {isa = PBXBuildFile; fileRef = B237966124169C79009D7947 /* HtmlParserModelData_edit.dat */; };
 		B2414D9C1EA602ED005A5758 /* UIViewController+Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2414D9B1EA602ED005A5758 /* UIViewController+Alert.swift */; };
 		B24B3F5620ECA04B0098ACE5 /* Array+ZSExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24B3F5520ECA04B0098ACE5 /* Array+ZSExtension.swift */; };
 		B251228D1DB3291A0040CAD3 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B251228C1DB3291A0040CAD3 /* CFNetwork.framework */; };
@@ -524,7 +523,6 @@
 		B237965B24169191009D7947 /* ZSSettingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZSSettingViewController.swift; sourceTree = "<group>"; };
 		B237965D241691C3009D7947 /* ZSSettingViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ZSSettingViewModel.swift; sourceTree = "<group>"; };
 		B237965F2416923B009D7947 /* ZSMyFooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZSMyFooterView.swift; sourceTree = "<group>"; };
-		B237966124169C79009D7947 /* HtmlParserModelData_edit.dat */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = HtmlParserModelData_edit.dat; sourceTree = "<group>"; };
 		B2414D9B1EA602ED005A5758 /* UIViewController+Alert.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIViewController+Alert.swift"; sourceTree = "<group>"; };
 		B24B3F5520ECA04B0098ACE5 /* Array+ZSExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+ZSExtension.swift"; sourceTree = "<group>"; };
 		B251228C1DB3291A0040CAD3 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
@@ -774,7 +772,6 @@
 		3D63E169235EF90A0015B7D3 /* Search */ = {
 			isa = PBXGroup;
 			children = (
-				B237966124169C79009D7947 /* HtmlParserModelData_edit.dat */,
 				B237965924169098009D7947 /* ZSAikanParserModel.swift */,
 				B237962424167DD1009D7947 /* ZSSearchHistory.swift */,
 				B237962624167DD2009D7947 /* ZSSearchInfoBottomView.swift */,
@@ -1568,7 +1565,6 @@
 				B252D4C4210F0B990091858E /* titlebg.png in Resources */,
 				B2B4BBF11E7EA4AB000CC201 /* Main.storyboard in Resources */,
 				3D69F5FC23866CAC00BCA97F /* LICENSE.txt in Resources */,
-				B237966224169C79009D7947 /* HtmlParserModelData_edit.dat in Resources */,
 				B2B4BBF01E7EA4AB000CC201 /* LaunchScreen.storyboard in Resources */,
 				B21C736723657E1400E9D148 /* HtmlParserModelData.dat in Resources */,
 				B2EE7CF41F3BFC7B00BE997C /* Localizable.strings in Resources */,

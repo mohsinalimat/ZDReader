@@ -2,8 +2,8 @@
 //  ZSDisplayView.swift
 //  CoreTextDemo
 //
-//  Created by Noah on 2019/7/12.
-//  Copyright © 2019 ZD. All rights reserved.
+//  Created by caony on 2019/7/12.
+//  Copyright © 2019 cj. All rights reserved.
 //
 
 import UIKit
@@ -14,25 +14,23 @@ class ZSDisplayView: UIView {
     // MARK: - Properties
     var ctFrame: CTFrame?
     
-    var images: [(image: UIImage, frame: CGRect)] = []
+    var parser:MarkupParser?
     
-    var imageModels:[ZSImageData] = []
-
     // MARK: - Properties
-    var imageIndex: Int!
+    private var imageIndex: Int!
     
-    var longPress:UILongPressGestureRecognizer!
+    private var longPress:UILongPressGestureRecognizer!
     
-    var originRange = NSRange(location: 0, length: 0)
+    private var originRange = NSRange(location: 0, length: 0)
     
-    var selectedRange = NSRange(location: 0, length: 0)
+    private var selectedRange = NSRange(location: 0, length: 0)
     
     var attributeString:NSMutableAttributedString = NSMutableAttributedString(string: "")
     
-    var rects:[CGRect] = []
+    private var rects:[CGRect] = []
     
-    var leftCursor:ZSTouchAnchorView!
-    var rightCursor:ZSTouchAnchorView!
+    private var leftCursor:ZSTouchAnchorView!
+    private var rightCursor:ZSTouchAnchorView!
     
     // 移动光标
     private var isTouchCursor = false
@@ -42,7 +40,7 @@ class ZSDisplayView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor.clear
-        isUserInteractionEnabled = true
+        isUserInteractionEnabled = false
         if longPress == nil {
             longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressAction(gesture:)))
             addGestureRecognizer(longPress)
@@ -62,6 +60,10 @@ class ZSDisplayView: UIView {
         rects.removeAll()
         hideCursor()
         setNeedsDisplay()
+        let point = tap.location(in: self)
+        if let linkData = MarkupParser.link(in: self, point: point, data: parser!.data!) {
+            print(linkData.title)
+        }
     }
     
     @objc
@@ -102,7 +104,7 @@ class ZSDisplayView: UIView {
         }
     }
     
-    func showCursor() {
+    private func showCursor() {
         guard rects.count > 0 else {
             return
         }
@@ -125,7 +127,7 @@ class ZSDisplayView: UIView {
         }
     }
     
-    func hideCursor() {
+    private func hideCursor() {
         if leftCursor != nil {
             leftCursor.removeFromSuperview()
             leftCursor = nil
@@ -203,7 +205,7 @@ class ZSDisplayView: UIView {
         touchOriginRange = selectedRange
     }
     
-    func rangeRects(range:NSRange, ctframe:CTFrame?) ->[CGRect] {
+    private func rangeRects(range:NSRange, ctframe:CTFrame?) ->[CGRect] {
         var rects:[CGRect] = []
         guard let ctframe = ctframe  else {
             return rects
@@ -211,7 +213,7 @@ class ZSDisplayView: UIView {
         guard range.location != NSNotFound else {
             return rects
         }
-        var lines = CTFrameGetLines(ctframe) as Array
+        let lines = CTFrameGetLines(ctframe) as Array
         var origins = [CGPoint](repeating: CGPoint.zero, count: lines.count)
         CTFrameGetLineOrigins(ctframe, CFRange(location: 0, length: 0), &origins)
         for index in 0..<lines.count {
@@ -239,12 +241,12 @@ class ZSDisplayView: UIView {
         return rects
     }
     
-    func touchLocation(point:CGPoint, str:String = "") ->NSRange {
+    private func touchLocation(point:CGPoint, str:String = "") ->NSRange {
         var touchRange = NSMakeRange(0, 0)
         guard let ctFrame = self.ctFrame else {
             return touchRange
         }
-        var lines = CTFrameGetLines(ctFrame) as Array
+        let lines = CTFrameGetLines(ctFrame) as Array
         var origins = [CGPoint](repeating: CGPoint.zero, count: lines.count)
         CTFrameGetLineOrigins(ctFrame, CFRange(location: 0, length: 0), &origins)
         for index in 0..<lines.count {
@@ -283,48 +285,32 @@ class ZSDisplayView: UIView {
         return touchRange
     }
     
-    func buildContent(attr:NSAttributedString, andImages:[ZSImageData] , settings:CTSettings) {
-        attributeString = NSMutableAttributedString(attributedString: attr)
+    func build(parser:MarkupParser) {
+        self.parser = parser
+        attributeString = NSMutableAttributedString(attributedString: parser.attrString)
         imageIndex = 0
-        let framesetter = CTFramesetterCreateWithAttributedString(attr as CFAttributedString)
+        let framesetter = CTFramesetterCreateWithAttributedString(attributeString as CFAttributedString)
         
-        let textSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, 0), nil, CGSize(width: settings.pageRect.size.width, height: CGFloat.greatestFiniteMagnitude), nil)
-
+        let textSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, 0), nil, CGSize(width: parser.config?.width ?? 0, height: CGFloat.greatestFiniteMagnitude), nil)
+        
+//        self.frame = CGRect(x: bounds.origin.x, y: bounds.origin.y, width: parser.config?.width ?? 0, height: textSize.height)
+        
         let path = CGMutablePath()
-        path.addRect(CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: settings.pageRect.width, height: textSize.height)))
+        path.addRect(CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: parser.config?.width ?? 0, height: textSize.height)))
         let ctframe = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, nil)
         self.ctFrame = ctframe
-        self.imageModels = andImages
-        attachImages(andImages, ctframe: ctframe, margin: settings.margin)
+        attachImages(parser.data?.images ?? [], ctframe: ctframe, margin: parser.config?.margin ?? 20)
         setNeedsDisplay()
     }
     
-    func build(withAttrString attrString: NSAttributedString,
-               andImages images: [[String: Any]]) {
-        imageIndex = 0
-        //4
-        let framesetter = CTFramesetterCreateWithAttributedString(attrString as CFAttributedString)
-        let settings = CTSettings.shared
-        
-        let textSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, 0), nil, CGSize(width: settings.pageRect.size.width, height: CGFloat.greatestFiniteMagnitude), nil)
-        self.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: textSize.height)
-        if let parentView = self.superview as? UIScrollView {
-            parentView.contentSize = CGSize(width: self.bounds.width, height: textSize.height)
-        }
-        let path = CGMutablePath()
-        path.addRect(CGRect(origin: CGPoint(x: 20, y: 20), size: CGSize(width: settings.pageRect.width, height: textSize.height)))
-        let ctframe = CTFramesetterCreateFrame(framesetter, CFRangeMake(0, 0), path, nil)
-        self.ctFrame = ctframe
-        attachImagesWithFrame(images, ctframe: ctframe, margin: settings.margin)
-    }
-    
-    func attachImages(_ images: [ZSImageData],ctframe: CTFrame,margin: CGFloat) {
+    private func attachImages(_ images: [ZSImageData],ctframe: CTFrame,margin: CGFloat) {
         if images.count == 0 {
             return
         }
         let lines = CTFrameGetLines(ctframe) as NSArray
         var origins = [CGPoint](repeating: .zero, count: lines.count)
         CTFrameGetLineOrigins(ctframe, CFRangeMake(0, 0), &origins)
+        var imageModels:[ZSImageData] = parser?.data?.images ?? []
         var nextImage:ZSImageData? = imageModels[imageIndex]
         for lineIndex in 0..<lines.count {
             if nextImage == nil {
@@ -353,8 +339,9 @@ class ZSDisplayView: UIView {
                     let pathRef = CTFrameGetPath(ctframe)
                     let colRect = pathRef.boundingBox
                     let delegateBounds = imgBounds.offsetBy(dx: colRect.origin.x, dy: colRect.origin.y)
-                    nextImage!.imagePosition = delegateBounds
+                    nextImage?.imagePosition = delegateBounds
                     imageModels[imageIndex].imagePosition = imgBounds
+                    parser?.data?.images = imageModels
                     imageIndex! += 1
                     if imageIndex < images.count {
                         nextImage = images[imageIndex]
@@ -366,60 +353,12 @@ class ZSDisplayView: UIView {
         }
     }
     
-    func attachImagesWithFrame(_ images: [[String: Any]],
-                               ctframe: CTFrame,
-                               margin: CGFloat) {
-        //1
-        let lines = CTFrameGetLines(ctframe) as NSArray
-        //2
-        var origins = [CGPoint](repeating: .zero, count: lines.count)
-        CTFrameGetLineOrigins(ctframe, CFRangeMake(0, 0), &origins)
-        //3
-        var nextImage = images[imageIndex]
-        guard var imgLocation = nextImage["location"] as? Int else {
-            return
-        }
-        //4
-        for lineIndex in 0..<lines.count {
-            let line = lines[lineIndex] as! CTLine
-            //5
-            if let glyphRuns = CTLineGetGlyphRuns(line) as? [CTRun],
-                let imageFilename = nextImage["filename"] as? String,
-                let img = UIImage(named: imageFilename)  {
-                for run in glyphRuns {
-                    // 1
-                    let runRange = CTRunGetStringRange(run)
-                    if runRange.location > imgLocation || runRange.location + runRange.length <= imgLocation {
-                        continue
-                    }
-                    //2
-                    var imgBounds: CGRect = .zero
-                    var ascent: CGFloat = 0
-                    imgBounds.size.width = CGFloat(CTRunGetTypographicBounds(run, CFRangeMake(0, 0), &ascent, nil, nil))
-                    imgBounds.size.height = ascent
-                    //3
-                    let xOffset = CTLineGetOffsetForStringIndex(line, CTRunGetStringRange(run).location, nil)
-                    imgBounds.origin.x = origins[lineIndex].x + xOffset
-                    imgBounds.origin.y = origins[lineIndex].y
-                    //4
-                    self.images += [(image: img, frame: imgBounds)]
-                    //5
-                    imageIndex! += 1
-                    if imageIndex < images.count {
-                        nextImage = images[imageIndex]
-                        imgLocation = (nextImage["location"] as AnyObject).intValue
-                    }
-                }
-            }
-        }
-    }
-    
     // MARK: - Life Cycle
     override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         
         context.textMatrix = .identity
-        context.translateBy(x: 0, y: bounds.size.height)
+        context.translateBy(x: 0, y: parser?.data?.height ?? bounds.size.height)
         context.scaleBy(x: 1.0, y: -1.0)
         
         if rects.count > 0 {
@@ -435,15 +374,7 @@ class ZSDisplayView: UIView {
         
         CTFrameDraw(ctFrame!, context)
         
-        
-        
-        for imageData in images {
-            if let image = imageData.image.cgImage {
-                let imgBounds = imageData.frame
-                context.draw(image, in: imgBounds)
-            }
-        }
-        
+        var imageModels:[ZSImageData] = parser?.data?.images ?? []
         for imageModel in imageModels {
             if let image = imageModel.image {
                 context.draw(image.cgImage!, in: imageModel.imagePosition)
@@ -454,7 +385,8 @@ class ZSDisplayView: UIView {
                     switch result {
                     case .success(let value):
                         print(value.image)
-                        self!.imageModels[self?.indexOfModel(model: imageModel, models: self!.imageModels) ?? 0].image = value.image
+                        imageModels[self?.indexOfModel(model: imageModel, models: imageModels) ?? 0].image = value.image
+                        self?.parser?.data?.images = imageModels
                         self?.setNeedsDisplay()
                     case .failure(let error):
                         print(error)
@@ -464,7 +396,7 @@ class ZSDisplayView: UIView {
         }
     }
     
-    func indexOfModel(model:ZSImageData, models:[ZSImageData]) ->Int {
+    private func indexOfModel(model:ZSImageData, models:[ZSImageData]) ->Int {
         var index = 0
         for data in models {
             if data.parse?.url == model.parse?.url {
