@@ -34,8 +34,7 @@ Main development of ZDReader olny support Swift 5.0+.
 
 ###效果图如下：
 
-<img src="images/home.png" width="20%" height="20%" />
-<img src="images/mine.png" width="20%" height="20%" />
+<img src="images/home.png" width="20%" height="20%" /><img src="images/mine.png" width="20%" height="20%" />
 <img src="images/setting.png" width="20%" height="20%" />
 <img src="images/source.png" width="20%" height="20%" />
 <img src="images/reader.png" width="20%" height="20%" />
